@@ -1,8 +1,8 @@
-principal {
-    x, y : int;
-    a : car;
-}
+principal
 {
-    x = 10;
-    escreva x;
+    { x, y : int; a : car; }
+    {
+        x = 10;
+        escreva x;
+    }
 }

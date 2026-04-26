@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "ast.h"
 #include "semantico.h"
+#include "codigo.h"
 
 extern int yylex();
 extern int yylineno;
@@ -224,7 +225,9 @@ int main(int argc, char **argv) {
   }
 
   yyparse();
+  
   analisar_semantico(raiz);
+  gerar_codigo(raiz);
 
   if (raiz) {
       imprimir_ast(raiz, 0);
