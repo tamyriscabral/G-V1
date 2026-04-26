@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "semantico.h"
 
 extern int yylex();
 extern int yylineno;
@@ -214,21 +215,22 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, char **argv) {
-    if (argc > 1) {
-        yyin = fopen(argv[1], "r");
-        if (!yyin) {
-            perror(argv[1]);
-            return 1;
-        }
-    }
+  if (argc > 1) {
+      yyin = fopen(argv[1], "r");
+      if (!yyin) {
+          perror(argv[1]);
+          return 1;
+      }
+  }
 
-    yyparse();
+  yyparse();
+  analisar_semantico(raiz);
 
-    if (raiz) {
-        imprimir_ast(raiz, 0);
-        liberar_ast(raiz);
-    }
+  if (raiz) {
+      imprimir_ast(raiz, 0);
+      liberar_ast(raiz);
+  }
 
-    if (yyin) fclose(yyin);
-    return 0;
+  if (yyin) fclose(yyin);
+  return 0;
 }

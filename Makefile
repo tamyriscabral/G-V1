@@ -1,10 +1,10 @@
-# Nome do executável final exigido pelo professor
+# Nome do executável final
 TARGET = g-v1
 
 all: $(TARGET)
 
-$(TARGET): lex.yy.c g-v1.tab.c ast.c ast.h symtab.c symtab.h
-	gcc -o $(TARGET) g-v1.tab.c lex.yy.c ast.c symtab.c
+$(TARGET): lex.yy.c g-v1.tab.c ast.c symtab.c semantico.c
+	gcc -o $(TARGET) g-v1.tab.c lex.yy.c ast.c symtab.c semantico.c
 
 lex.yy.c: g-v1.l g-v1.tab.h
 	flex g-v1.l
