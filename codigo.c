@@ -22,18 +22,16 @@ static int gerar(AST *no) {
         }
 
         case AST_BLOCO: {
-            gerar(no->filho1); // VARSECTION (pode ignorar por enquanto)
-            gerar(no->filho2); // comandos
+            gerar(no->filho1);
+            gerar(no->filho2); //comandos
             break; 
         }
 
         case AST_VARSECTION: {
-            // nada ainda (variáveis serão tratadas depois)
             break; 
         }
 
         case AST_DECLVAR: {
-            // nada ainda
             break; 
         }
             
