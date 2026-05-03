@@ -5,6 +5,11 @@
 #include "codigo.h"
 
 static int temp_counter = 0;
+static int label_counter = 0;
+
+static int novo_label() {
+    return label_counter++;
+}
 
 static int novo_temp() {
     return temp_counter++;
@@ -23,8 +28,8 @@ static int gerar(AST *no) {
 
         case AST_BLOCO: {
             gerar(no->filho1);
-            gerar(no->filho2); //comandos
-            break; 
+            gerar(no->filho2);
+            break;
         }
 
         case AST_VARSECTION: {
@@ -40,7 +45,7 @@ static int gerar(AST *no) {
         case AST_INTCONST: {
             int t = novo_temp();
             printf("li $t%d, %s\n", t, no->lexema);
-            break;
+            return t;
         }
 
         case AST_IDENT: {
@@ -69,6 +74,20 @@ static int gerar(AST *no) {
                 printf("mul $t%d, $t%d, $t%d\n", t, t1, t2);
             else if (strcmp(no->lexema, "/") == 0)
                 printf("div $t%d, $t%d, $t%d\n", t, t1, t2);
+            
+            // Operadores relacionais
+            else if (strcmp(no->lexema, "==") == 0)
+                printf("seq $t%d, $t%d, $t%d\n", t, t1, t2);
+            else if (strcmp(no->lexema, "!=") == 0)
+                printf("sne $t%d, $t%d, $t%d\n", t, t1, t2);
+            else if (strcmp(no->lexema, "<") == 0)
+                printf("slt $t%d, $t%d, $t%d\n", t, t1, t2);
+            else if (strcmp(no->lexema, ">") == 0)
+                printf("sgt $t%d, $t%d, $t%d\n", t, t1, t2);
+            else if (strcmp(no->lexema, "<=") == 0)
+                printf("sle $t%d, $t%d, $t%d\n", t, t1, t2);
+            else if (strcmp(no->lexema, ">=") == 0)
+                printf("sge $t%d, $t%d, $t%d\n", t, t1, t2);
 
             return t;
         }
@@ -82,12 +101,73 @@ static int gerar(AST *no) {
 
             break;
         }
-    
+
+        case AST_SE: {
+            int cond = gerar(no->filho1);
+
+            if (no->filho3) {
+                // IF com ELSE
+                int lbl_else = novo_label();
+                int lbl_end  = novo_label();
+
+                printf("beq $t%d, $zero, L%d\n", cond, lbl_else);
+
+                // THEN
+                gerar(no->filho2);
+                printf("j L%d\n", lbl_end);
+
+                // ELSE
+                printf("L%d:\n", lbl_else);
+                gerar(no->filho3);
+
+                // FIM
+                printf("L%d:\n", lbl_end);
+
+            } else {
+                // IF sem ELSE
+                int lbl_end = novo_label();
+
+                printf("beq $t%d, $zero, L%d\n", cond, lbl_end);
+
+                gerar(no->filho2);
+
+                printf("L%d:\n", lbl_end);
+            }
+
+            break;
+        }
+
+        case AST_ENQUANTO: {
+            int lbl_inicio = novo_label();
+            int lbl_fim    = novo_label();
+
+            printf("L%d:\n", lbl_inicio);
+
+            int cond = gerar(no->filho1);
+
+            // Se condição == 0 → sai do loop
+            printf("beq $t%d, $zero, L%d\n", cond, lbl_fim);
+
+            // Corpo
+            gerar(no->filho2);
+
+            // Volta pro início
+            printf("j L%d\n", lbl_inicio);
+
+            printf("L%d:\n", lbl_fim);
+
+            break;
+        }
+        
+        return -1;
     }
     
-    if (no->irmao) {
-        gerar(no->irmao); 
-    } 
+    // Só percorre irmãos para certos tipos
+    if (no->tipo != AST_SE && no->tipo != AST_ENQUANTO) {
+        if (no->irmao) {
+            gerar(no->irmao);
+        }
+    }
 }
 
 static void gerar_data(AST *no) {
