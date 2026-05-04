@@ -212,7 +212,8 @@ PrimExpr
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "ERRO: %s na linha %d\n", s, yylineno);
+    fprintf(stderr, "ERRO: %s na linha %d\n", s, yylineno-1);
+    exit(1);
 }
 
 int main(int argc, char **argv) {
@@ -224,13 +225,13 @@ int main(int argc, char **argv) {
       }
   }
 
-  yyparse();
-  
-  analisar_semantico(raiz);
-  gerar_codigo(raiz);
+  if (yyparse() == 0) {
+    analisar_semantico(raiz);
+    gerar_codigo(raiz);
+  }
 
   if (raiz) {
-      imprimir_ast(raiz, 0);
+      //imprimir_ast(raiz, 0);
       liberar_ast(raiz);
   }
 
