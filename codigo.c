@@ -4,6 +4,7 @@
 
 #include "codigo.h"
 
+// Contadores para geração de registradores ($tx) e rótulos (Lx)
 static int temp_counter = 0;
 static int label_counter = 0;
 
@@ -15,22 +16,26 @@ static int novo_temp() {
     return temp_counter++;
 }
 
+// Função principal que percorre a AST e emite código em MIPS
 static int gerar(AST *no) {
     if (!no){
         return -1; 
     } 
 
     switch (no->tipo) {
+        // Inicia a geração a partir do bloco principal
         case AST_PROGRAMA: {
             gerar(no->filho1);
             break;
         }
 
+        // Representa um bloco lexical (variáveis + comandos)
         case AST_BLOCO: {
             gerar(no->filho1);
             gerar(no->filho2);
             break;
         }
+
 
         case AST_VARSECTION: {
             break; 
@@ -41,31 +46,36 @@ static int gerar(AST *no) {
         }
             
     
-            
+        // Carrega constante imediata no registrador (li)
         case AST_INTCONST: {
             int t = novo_temp();
             printf("li $t%d, %s\n", t, no->lexema);
             return t;
         }
 
+        // Carrega variável da memória (lw)
         case AST_IDENT: {
             int t = novo_temp();
             printf("lw $t%d, %s\n", t, no->lexema);
             return t;
         }
 
+        // Avalia a expressão do lado direito e armazena a variável no lado esquerdo (sw)
         case AST_ATRIB: {
             int t = gerar(no->filho2);
             printf("sw $t%d, %s\n", t, no->filho1->lexema);
             break;
         }
 
+        // Avalia expressões aritméticas e relacionais
+        // (garante que operandos estejam prontos antes da operação)
         case AST_OP: {
             int t1 = gerar(no->filho1);
             int t2 = gerar(no->filho2);
 
             int t = novo_temp();
 
+            // Operadores aritméticos
             if (strcmp(no->lexema, "+") == 0)
                 printf("add $t%d, $t%d, $t%d\n", t, t1, t2);
             else if (strcmp(no->lexema, "-") == 0)
@@ -92,6 +102,7 @@ static int gerar(AST *no) {
             return t;
         }
         
+        // Chamada de sistema MIPS para imprimir inteiro
         case AST_ESCREVA: {
             int t = gerar(no->filho1);
 
@@ -102,6 +113,7 @@ static int gerar(AST *no) {
             break;
         }
 
+        // Constrói a estrutura de "SE" em saltos condicionais
         case AST_SE: {
             int cond = gerar(no->filho1);
 
@@ -110,6 +122,7 @@ static int gerar(AST *no) {
                 int lbl_else = novo_label();
                 int lbl_end  = novo_label();
 
+                // "if (!cond) goto ELSE"
                 printf("beq $t%d, $zero, L%d\n", cond, lbl_else);
 
                 // THEN
@@ -137,6 +150,7 @@ static int gerar(AST *no) {
             break;
         }
 
+        // Constrói a estrutura de "ENQUANTO" em saltos condicionais
         case AST_ENQUANTO: {
             int lbl_inicio = novo_label();
             int lbl_fim    = novo_label();
@@ -158,8 +172,6 @@ static int gerar(AST *no) {
 
             break;
         }
-        
-        return -1;
     }
     
     // Só percorre irmãos para certos tipos
@@ -168,8 +180,11 @@ static int gerar(AST *no) {
             gerar(no->irmao);
         }
     }
+
+    return -1;
 }
 
+// Gera a seção .data para variáveis globais
 static void gerar_data(AST *no) {
     if (!no) return;
 
@@ -185,7 +200,7 @@ static void gerar_data(AST *no) {
     gerar_data(no->irmao);
 }
 
-
+// Função principal para estruturar o programa em MIPS
 void gerar_codigo(AST *raiz) {
     printf(".data\n");
     gerar_data(raiz);
