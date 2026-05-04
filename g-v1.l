@@ -13,7 +13,7 @@ extern int yylineno;
 LETRA      [a-zA-Z_]
 DIGITO     [0-9]
 ID         {LETRA}({LETRA}|{DIGITO})*
-INTNUM     [+-]?{DIGITO}+
+INTNUM     {DIGITO}+
 CARACT     \'([^\\\n]|\\[ntr0\'\"\\])\'
 CADEIA     \"[^\"\n]*\"
 
