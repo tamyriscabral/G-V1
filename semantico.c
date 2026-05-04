@@ -10,6 +10,17 @@ static void erro(const char *msg, int linha) {
     exit(1);
 }
 
+static TipoSimbolo analisar(AST *no, ScopeStack *pilha);
+
+static void analisar_lista(AST *no, ScopeStack *pilha) {
+    AST *atual = no;
+
+    while (atual != NULL) {
+        analisar(atual, pilha);
+        atual = atual->irmao;
+    }
+}
+
 // Função principal que percorre a AST
 // É recursiva e retorna o tipo do nó analisado
 static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
@@ -27,7 +38,7 @@ static TipoSimbolo analisar(AST *no, ScopeStack *pilha) {
         case AST_BLOCO: {
             empilhar_escopo(pilha);
             analisar(no->filho1, pilha); // VARSECTION
-            analisar(no->filho2, pilha); // comandos
+            analisar_lista(no->filho2, pilha); // comandos// comandos
             desempilhar_escopo(pilha);
             break;
         } 
