@@ -19,3 +19,7 @@ Thumbs.db
 
 # PDFs de roteiro do trabalho e afins
 *.pdf
+
+# Arquivos duplicados para explicação de código
+g-v1-comentado.l
+g-v1-comentado.y
